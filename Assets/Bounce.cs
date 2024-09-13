@@ -17,11 +17,14 @@ public class Bounce : MonoBehaviour
         float deltaT = 1.0f / 60.0f;
 
         // Prevent dampen when low to prevent infinite
-        if (transform.position.y <= mass * -gravity * deltaT * friction && 
-            vel.magnitude <= mass * -gravity * deltaT)
+        if (transform.position.y <= mass * -gravity * deltaT && 
+            vel.magnitude <= mass * -gravity * deltaT * 2.0f)
         {
-            print("DAMPEN");
-            vel.y *= 0.75f;
+            vel.y *= 0.50f;
+            if (transform.position.y < 0.0f) 
+            {
+                transform.position = new Vector3(transform.position.x, 0.0f, transform.position.z) ;
+            }
         }
         // If next change would make neg, flip instead
         else if (transform.position.y + vel.y < 0.0f)
