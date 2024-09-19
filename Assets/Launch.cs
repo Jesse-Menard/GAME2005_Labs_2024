@@ -1,4 +1,5 @@
 
+using System;
 using UnityEngine;
 
 public class Launch : MonoBehaviour
@@ -13,10 +14,13 @@ public class Launch : MonoBehaviour
 
     float deltaT = 1.0f / 60.0f;
 
+    public float X_val;
+    public float Y_val;
+
 
     private void Start()
     {
-       b = GetComponent<Bounce>();
+        b = GetComponent<Bounce>();
     }
 
     private void Update()
@@ -25,7 +29,7 @@ public class Launch : MonoBehaviour
         {
             // Launch
             // velocity = new(Mathf.Cos(angle) * speed, Mathf.Sin(angle) * speed, 0.0f);
-            b.vel = new(Mathf.Cos(angle) * speed, Mathf.Sin(angle) * speed, 0.0f);
+            b.vel = new(Mathf.Cos(angle / Mathf.Rad2Deg) * speed, Mathf.Sin(angle / Mathf.Rad2Deg) * speed, 0.0f);
             transform.position = new(0.0f, startHeight, 0.0f);
             //Debug.DrawLine(transform.position, transform.position + velocity, Color.red, 2);
         }
@@ -33,8 +37,7 @@ public class Launch : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Debug.DrawLine(new Vector3(0.0f, startHeight, 0.0f), new Vector3(Mathf.Cos(angle) * speed, Mathf.Sin(angle) * speed + startHeight, 0.0f), Color.blue);
-
+        Debug.DrawLine(new Vector3(0.0f, startHeight, 0.0f), new Vector3(Mathf.Cos(angle / Mathf.Rad2Deg) * speed, Mathf.Sin(angle / Mathf.Rad2Deg) * speed + startHeight, 0.0f), Color.blue);        
         //transform.position += b.vel * deltaT;
     }
 }
