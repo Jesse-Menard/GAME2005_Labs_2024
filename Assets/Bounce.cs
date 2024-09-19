@@ -30,7 +30,7 @@ public class Bounce : MonoBehaviour
         else if (transform.position.y + vel.y < 0.0f)
         {
             transform.position = new Vector3(transform.position.x, 0.0f, transform.position.z);
-            vel *= -1.0f;
+            vel.y *= -1.0f;
             applyFric = true;
         }         
         // gravity & friction
