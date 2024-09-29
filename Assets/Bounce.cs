@@ -20,7 +20,7 @@ public class Bounce : MonoBehaviour
         if (transform.position.y <= mass * -gravity * deltaT && 
             vel.magnitude <= mass * -gravity * deltaT * 2.0f)
         {
-            vel.y *= 0.50f;
+            vel *= 0.50f;
             if (transform.position.y < 0.0f) 
             {
                 transform.position = new Vector3(transform.position.x, 0.0f, transform.position.z) ;
