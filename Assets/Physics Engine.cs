@@ -38,7 +38,7 @@ public class PhysicsEngine : MonoBehaviour
             Object1.velocity += gravityAcceleration * dt;
 
             // Update Velocity on drag
-            // Object1.velocity += drag * dt ?
+            Object1.velocity *=  Mathf.Abs(Object1.drag - 1); // 0-1
 
             // Visualize
             Debug.DrawLine(prevPos, newPos, new Color(180.0f/255.0f, 0.0f, 1.0f), 10);
