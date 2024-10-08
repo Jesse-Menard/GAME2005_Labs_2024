@@ -8,13 +8,11 @@ public class Launch : MonoBehaviour
     public float speed;
     public float startHeight;
 
-    Bounce b;
-
     float deltaT = 1.0f / 60.0f;
-
+    public GameObject ProjectileObject;
     private void Start()
     {
-        b = GetComponent<Bounce>();
+
     }
 
     private void Update()
@@ -22,8 +20,11 @@ public class Launch : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             // Launch
-            b.vel = new(Mathf.Cos(angle / Mathf.Rad2Deg) * speed * deltaT, Mathf.Sin(angle / Mathf.Rad2Deg) * speed * deltaT, 0.0f);
-            transform.position = new(0.0f, startHeight, 0.0f);
+            GameObject launchObject = Instantiate(ProjectileObject);
+            PhysicsObject physicsObject = launchObject.GetComponent<PhysicsObject>();
+
+            physicsObject.velocity = new(Mathf.Cos(angle / Mathf.Rad2Deg) * speed, Mathf.Sin(angle / Mathf.Rad2Deg) * speed, 0.0f);
+            physicsObject.transform.position = new(0.0f, startHeight, 0.0f);
         }
     }
 
