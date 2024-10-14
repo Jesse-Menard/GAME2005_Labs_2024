@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.PackageManager;
@@ -68,18 +69,21 @@ public class PhysicsEngine : MonoBehaviour
             {
                 PhysicsObject object2 = physicsObjects[b];
 
-                if (SphereSphereCollision(object1, object2))
+                if (object1.GetType() == typeof(Sphere) && object2.GetType() == typeof(Sphere))
                 {
-                    // Colliding
+                    if (SphereSphereCollision(object1 as Sphere, object2 as Sphere))
+                    {
+                        // Colliding
 
-                    object1.GetComponent<Renderer>().material.color = new Color(180f / 255f, 0f, 1f);
-                    object2.GetComponent<Renderer>().material.color = new Color(180f / 255f, 0f, 1f);
+                        object1.GetComponent<Renderer>().material.color = new Color(180f / 255f, 0f, 1f);
+                        object2.GetComponent<Renderer>().material.color = new Color(180f / 255f, 0f, 1f);
+                    }
                 }
             }
         }
     }
 
-    bool SphereSphereCollision(PhysicsObject ob1, PhysicsObject ob2)
+    bool SphereSphereCollision(Sphere ob1, Sphere ob2)
     {
         float distance = (ob1.transform.position - ob2.transform.position).magnitude;
         return distance < (ob1.radius + ob2.radius);
