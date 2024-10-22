@@ -27,6 +27,17 @@ public class PhysicsEngine : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        foreach (PhysicsObject obj in physicsObjects)
+        {
+            obj.GetComponent<Renderer>().material.color = Color.white;
+        }
+
+        KinematicsUpdate();
+        CollisionUpdate();
+    }
+
+    private void KinematicsUpdate()
+    {
         foreach (PhysicsObject object1 in physicsObjects)
         {
             Vector3 prevPos = object1.transform.position;
@@ -36,24 +47,81 @@ public class PhysicsEngine : MonoBehaviour
             object1.transform.position = newPos;
 
             // Update Velocity on Accelleration
-            Vector3 accelerationThisFrame = gravityAcceleration;
+            if (object1.enableGravity)
+            {
+                Vector3 accelerationThisFrame = gravityAcceleration;
 
-            Vector3 vSquared = object1.velocity.normalized * object1.velocity.sqrMagnitude;
+                Vector3 vSquared = object1.velocity.normalized * object1.velocity.sqrMagnitude;
 
-            Vector3 dragacceleration = -object1.drag * vSquared;
+                Vector3 dragacceleration = -object1.drag * vSquared;
 
-            accelerationThisFrame += dragacceleration;
+                // Update Velocity on Accelleration
 
-            object1.velocity += accelerationThisFrame * dt;
+                accelerationThisFrame += dragacceleration;
+
+                object1.velocity += accelerationThisFrame * dt;
+            }
 
             // Update Velocity on drag
             //object1.velocity *=  Mathf.Abs(object1.drag - 1); // 0-1
 
             // Visualize
-            Debug.DrawLine(prevPos, newPos, new Color(180.0f/255.0f, 0.0f, 1.0f), 10);
+            Debug.DrawLine(prevPos, newPos, new Color(180.0f / 255.0f, 0.0f, 1.0f), 10);
             Debug.DrawLine(object1.transform.position, object1.transform.position + object1.velocity, Color.red);
 
             time += dt;
         }
+    }
+
+    private void CollisionUpdate()
+    {
+        for (int a = 0; a < physicsObjects.Count; a++)
+        {
+            PhysicsObject object1 = physicsObjects[a];
+
+            for (int b = a + 1; b < physicsObjects.Count; b++)
+            {
+                bool isOverlapping = false;
+                PhysicsObject object2 = physicsObjects[b];
+
+                if (object1.GetType() == typeof(Sphere) && object2.GetType() == typeof(Sphere))
+                {
+                    isOverlapping = SphereSphereCollision(object1 as Sphere, object2 as Sphere);
+                }
+                else if (object1.GetType() == typeof(Sphere) && object2.GetType() == typeof(MyPlane))
+                {
+                    isOverlapping = SpherePlaneCollision(object1 as Sphere, object2 as MyPlane);
+                }
+                else if (object1.GetType() == typeof(MyPlane) && object2.GetType() == typeof(Sphere))
+                {
+                    isOverlapping = SpherePlaneCollision(object2 as Sphere, object1 as MyPlane);
+                }
+                if (isOverlapping)
+                {
+                    // Colliding
+
+                    object1.GetComponent<Renderer>().material.color = Color.red;
+                    object2.GetComponent<Renderer>().material.color = Color.red;
+                }
+            }
+        }
+    }
+
+    public static bool SphereSphereCollision(Sphere ob1, Sphere ob2)
+    {
+        float distance = (ob1.transform.position - ob2.transform.position).magnitude;
+        return distance < (ob1.radius + ob2.radius);
+    }
+
+    public static bool SpherePlaneCollision(Sphere sphere, MyPlane plane)
+    {
+        Vector3 planeToSphere = sphere.transform.position - plane.transform.position;
+        float positionAlongNormal = Vector3.Dot(planeToSphere, plane.GetNormal());
+        float distanceToPlane = Mathf.Abs(positionAlongNormal);
+        if(plane.isHalspace)
+        {
+            return positionAlongNormal < sphere.radius;
+        }
+        return distanceToPlane < sphere.radius;
     }
 }

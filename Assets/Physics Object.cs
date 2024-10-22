@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class PhysicsObject : MonoBehaviour
 {
-    public float mass = 1;
+    public bool enableGravity = true;
     [Range(0f, 2f)]
     public float drag = 0.1f;
     public Vector3 velocity = Vector3.zero;
