@@ -109,6 +109,26 @@ public class PhysicsEngine : MonoBehaviour
 
     public static bool SphereSphereCollision(Sphere ob1, Sphere ob2)
     {
+        Vector3 Displacement = ob1.transform.position - ob2.transform.position;
+        float distance = Displacement.magnitude;
+        float overlap = (ob1.radius + ob2.radius) - distance;
+
+        if (overlap > 0.0f)
+        {
+            Vector3 collisionNormal2to1 = Displacement / distance;
+            Vector3 mtv = collisionNormal2to1 * overlap;
+            ob1.transform.position += mtv * 0.5f;
+            ob2.transform.position -= mtv * 0.5f;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public static bool SphereSphereOverlap(Sphere ob1, Sphere ob2)
+    {
         float distance = (ob1.transform.position - ob2.transform.position).magnitude;
         return distance < (ob1.radius + ob2.radius);
     }
