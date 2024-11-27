@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
@@ -134,6 +135,23 @@ public class PhysicsEngine : MonoBehaviour
     }
 
     public static bool SpherePlaneCollision(Sphere sphere, MyPlane plane)
+    {
+        Vector3 Displacement = sphere.transform.position - plane.transform.position;
+        float positionAlongNormal = (plane.isHalspace ? Vector3.Dot(Displacement, plane.GetNormal()) : Mathf.Abs(Vector3.Dot(Displacement, plane.GetNormal())));
+        float overlap = sphere.radius - positionAlongNormal;
+        if (overlap > 0.0f)
+        {
+            Vector3 mtv = plane.GetNormal() * overlap;
+            sphere.transform.position += mtv;
+            return true;
+        }
+        else 
+        { 
+            return false; 
+        }
+    }
+
+    public static bool SpherePlaneOverlap(Sphere sphere, MyPlane plane)
     {
         Vector3 planeToSphere = sphere.transform.position - plane.transform.position;
         float positionAlongNormal = Vector3.Dot(planeToSphere, plane.GetNormal());
