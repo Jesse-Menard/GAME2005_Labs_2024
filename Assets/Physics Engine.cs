@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using Unity.VisualScripting;
 using UnityEditor.PackageManager;
 using UnityEngine;
@@ -35,6 +36,10 @@ public class PhysicsEngine : MonoBehaviour
 
         KinematicsUpdate();
         CollisionUpdate();
+        foreach (PhysicsObject obj in physicsObjects)
+        {
+            DrawForces(obj);
+        }
     }
 
     private void KinematicsUpdate()
@@ -51,13 +56,7 @@ public class PhysicsEngine : MonoBehaviour
             if (object1.enableGravity)
             {
                 object1.FGravity = object1.mass * gravityAcceleration;
-
-                // Fg = Fpara + Fperp
-                // Fperp = Fg projected onto normal
-
-                Debug.DrawLine(object1.transform.position, object1.transform.position + object1.FNormal / 10, Color.green, 2);
-                Debug.DrawLine(object1.transform.position, object1.transform.position + object1.FFriction / 10, new Color(1, 0.4f, 0), 2);
-                Debug.DrawLine(object1.transform.position, object1.transform.position + object1.FGravity / 10, new Color(1, 0, 1), 2);
+                object1.FNet = object1.FFriction + object1.FGravity + object1.FNormal;
 
                 Vector3 accelerationThisFrame = gravityAcceleration;
 
@@ -69,13 +68,11 @@ public class PhysicsEngine : MonoBehaviour
 
                 accelerationThisFrame += dragacceleration;
 
+                // Fg = Fpara + Fperp
+                // Fperp = Fg projected onto normal
+
                 object1.velocity += accelerationThisFrame * dt;
             }
-
-            // Update Velocity on drag
-            //object1.velocity *=  Mathf.Abs(object1.drag - 1); // 0-1
-
-
 
             // Visualize
             //  Debug.DrawLine(prevPos, newPos, new Color(180.0f / 255.0f, 0.0f, 1.0f), 10);
@@ -153,8 +150,8 @@ public class PhysicsEngine : MonoBehaviour
 
         if (overlap > 0.0f)
         {
-            sphere.FNormal = -Vector3.Dot(plane.GetNormal(), sphere.FGravity) * plane.GetNormal();
-            sphere.FFriction = -(sphere.FGravity + sphere.FNormal);
+            sphere.FNormal = ((-Vector3.Dot(plane.GetNormal(), sphere.FGravity) * plane.GetNormal()));// + sphere.FNormal)/2;
+            sphere.FFriction = -(sphere.FGravity + sphere.FNormal) * sphere.friction;
 
             Vector3 mtv = plane.GetNormal() * overlap;
             sphere.transform.position += mtv;
@@ -176,5 +173,12 @@ public class PhysicsEngine : MonoBehaviour
             return positionAlongNormal < sphere.radius;
         }
         return distanceToPlane < sphere.radius;
+    }
+
+    public void DrawForces(PhysicsObject physObject)
+    {
+        Debug.DrawLine(physObject.transform.position, physObject.transform.position + physObject.FNormal / 3, Color.green);
+        Debug.DrawLine(physObject.transform.position, physObject.transform.position + physObject.FFriction / 3, new Color(1, 0.4f, 0));
+        Debug.DrawLine(physObject.transform.position, physObject.transform.position + physObject.FGravity / 3, new Color(1, 0, 1));
     }
 }

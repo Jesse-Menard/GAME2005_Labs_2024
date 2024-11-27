@@ -25,6 +25,10 @@ public class Launch : MonoBehaviour
 
             physicsObject.velocity = new(Mathf.Cos(angle / Mathf.Rad2Deg) * speed, Mathf.Sin(angle / Mathf.Rad2Deg) * speed, 0.0f);
             physicsObject.transform.position = new(0.0f, startHeight, 0.0f);
+            physicsObject.FNet = Vector3.zero;
+            physicsObject.FNormal = Vector3.zero;
+            physicsObject.FGravity = Vector3.zero;
+            physicsObject.FFriction = Vector3.zero;
         }
     }
 
