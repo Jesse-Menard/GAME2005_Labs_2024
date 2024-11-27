@@ -55,9 +55,9 @@ public class PhysicsEngine : MonoBehaviour
                 // Fg = Fpara + Fperp
                 // Fperp = Fg projected onto normal
 
-                //  Debug.DrawLine(object1.transform.position, object1.transform.position + object1.FNormal, Color.green, 5);
-                Debug.DrawLine(object1.transform.position, object1.transform.position + object1.FFriction, new Color(1, 0.4f, 0), 5);
-                //  Debug.DrawLine(object1.transform.position, object1.transform.position + object1.FGravity, new Color(1, 0, 1), 5);
+                Debug.DrawLine(object1.transform.position, object1.transform.position + object1.FNormal / 10, Color.green, 2);
+                Debug.DrawLine(object1.transform.position, object1.transform.position + object1.FFriction / 10, new Color(1, 0.4f, 0), 2);
+                Debug.DrawLine(object1.transform.position, object1.transform.position + object1.FGravity / 10, new Color(1, 0, 1), 2);
 
                 Vector3 accelerationThisFrame = gravityAcceleration;
 
@@ -154,7 +154,8 @@ public class PhysicsEngine : MonoBehaviour
         if (overlap > 0.0f)
         {
             sphere.FNormal = -Vector3.Dot(plane.GetNormal(), sphere.FGravity) * plane.GetNormal();
-            sphere.FFriction = sphere.FGravity - sphere.FNormal;
+            sphere.FFriction = -(sphere.FGravity + sphere.FNormal);
+
             Vector3 mtv = plane.GetNormal() * overlap;
             sphere.transform.position += mtv;
             return true;
