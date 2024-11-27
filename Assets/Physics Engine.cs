@@ -50,6 +50,15 @@ public class PhysicsEngine : MonoBehaviour
             // Update Velocity on Accelleration
             if (object1.enableGravity)
             {
+                object1.FGravity = object1.mass * gravityAcceleration;
+
+                // Fg = Fpara + Fperp
+                // Fperp = Fg projected onto normal
+
+                //  Debug.DrawLine(object1.transform.position, object1.transform.position + object1.FNormal, Color.green, 5);
+                Debug.DrawLine(object1.transform.position, object1.transform.position + object1.FFriction, new Color(1, 0.4f, 0), 5);
+                //  Debug.DrawLine(object1.transform.position, object1.transform.position + object1.FGravity, new Color(1, 0, 1), 5);
+
                 Vector3 accelerationThisFrame = gravityAcceleration;
 
                 Vector3 vSquared = object1.velocity.normalized * object1.velocity.sqrMagnitude;
@@ -66,9 +75,11 @@ public class PhysicsEngine : MonoBehaviour
             // Update Velocity on drag
             //object1.velocity *=  Mathf.Abs(object1.drag - 1); // 0-1
 
+
+
             // Visualize
-            Debug.DrawLine(prevPos, newPos, new Color(180.0f / 255.0f, 0.0f, 1.0f), 10);
-            Debug.DrawLine(object1.transform.position, object1.transform.position + object1.velocity, Color.red);
+            //  Debug.DrawLine(prevPos, newPos, new Color(180.0f / 255.0f, 0.0f, 1.0f), 10);
+            //  Debug.DrawLine(object1.transform.position, object1.transform.position + object1.velocity, Color.red);
 
             time += dt;
         }
@@ -139,8 +150,11 @@ public class PhysicsEngine : MonoBehaviour
         Vector3 Displacement = sphere.transform.position - plane.transform.position;
         float positionAlongNormal = (plane.isHalspace ? Vector3.Dot(Displacement, plane.GetNormal()) : Mathf.Abs(Vector3.Dot(Displacement, plane.GetNormal())));
         float overlap = sphere.radius - positionAlongNormal;
+
         if (overlap > 0.0f)
         {
+            sphere.FNormal = -Vector3.Dot(plane.GetNormal(), sphere.FGravity) * plane.GetNormal();
+            sphere.FFriction = sphere.FGravity - sphere.FNormal;
             Vector3 mtv = plane.GetNormal() * overlap;
             sphere.transform.position += mtv;
             return true;
