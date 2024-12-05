@@ -278,7 +278,7 @@ public class PhysicsEngine : MonoBehaviour
 
     public void DrawForces(PhysicsObject physObject)
     {
-        Debug.DrawRay(physObject.transform.position, physObject.velocity, Color.yellow, 0.01f, false);
+        Debug.DrawRay(physObject.transform.position, physObject.velocity, Color.red, 0.01f, false);
         Debug.DrawRay(physObject.transform.position, physObject.FNormal, Color.green, 0.01f, false);
         Debug.DrawRay(physObject.transform.position, physObject.FFriction, new Color(1, 0.4f, 0), 0.01f, false);
         Debug.DrawRay(physObject.transform.position, physObject.FGravity, new Color(1, 0, 1), 0.01f, false);
