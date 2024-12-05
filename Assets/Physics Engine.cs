@@ -60,7 +60,7 @@ public class PhysicsEngine : MonoBehaviour
     {
         foreach (PhysicsObject obj in physicsObjects)
         {
-            obj.FGravity = obj.mass* gravityAcceleration * obj.gravityScale;
+            obj.FGravity = obj.mass * gravityAcceleration * obj.gravityScale;
             obj.FNet += obj.FGravity;
 
             if (!obj.isStatic)
@@ -79,7 +79,7 @@ public class PhysicsEngine : MonoBehaviour
                
                 Vector3 momentum = obj.velocity * obj.mass;
 
-                if (momentum.sqrMagnitude < 0.001f)
+                if (momentum.sqrMagnitude < 0.0001f)
                 {
                     obj.velocity = Vector3.zero;
                 }
@@ -91,7 +91,7 @@ public class PhysicsEngine : MonoBehaviour
             { 
                 obj.velocity = Vector3.zero; 
             }
-            obj.FFriction = obj.FNet;
+            //obj.FFriction = obj.FNet;
             obj.FNet = Vector3.zero;
             time += dt;
         }
@@ -121,8 +121,8 @@ public class PhysicsEngine : MonoBehaviour
                     collisionInfo = SpherePlaneCollision(object2 as Sphere, object1 as MyPlane);
                 }
 
-                object1.FNormal = Vector3.zero;
-                object2.FNormal = Vector3.zero;
+                //  object1.FNormal = Vector3.zero;
+                //  object2.FNormal = Vector3.zero;
 
                 if (collisionInfo.isColliding)
                 {
@@ -132,7 +132,7 @@ public class PhysicsEngine : MonoBehaviour
                     object2.GetComponent<Renderer>().material.color = Color.red;
 
                     // Calculate the perpendicular conponent of gravity by vector projection of gravity onto the normal
-                    float gravityDotNormal = Vector3.Dot(object2.FGravity, collisionInfo.normal);
+                    float gravityDotNormal = Vector3.Dot(object1.FGravity, collisionInfo.normal);
                     Vector3 gravityProjectedNormal = collisionInfo.normal * gravityDotNormal;
 
 
@@ -145,8 +145,8 @@ public class PhysicsEngine : MonoBehaviour
                     // Add the normal force that opposes gravity
                     if (gravityDotNormal < 0) // if normal and gravity in the same direction
                     {
-                        object1.FNormal = gravityProjectedNormal;
-                        object2.FNormal = -gravityProjectedNormal;
+                        object1.FNormal = -gravityProjectedNormal;
+                        object2.FNormal = gravityProjectedNormal;
 
                         object1.FNet += object1.FNormal;
                         object2.FNet += object2.FNormal;
@@ -167,9 +167,8 @@ public class PhysicsEngine : MonoBehaviour
                         }
                     }
 
-
                     //  //  Lab 10 -- Bounciness/applying impulse from collision
-                    //  if (velDotNormal < 0) // only if they're moving towards eachother to some degree
+                    //  if (velDotNormal > 0) // only if they're moving towards eachother to some degree
                     //  {
                     //      // Apply bounce
                     //      // Determine coefficient of restitution
@@ -192,9 +191,8 @@ public class PhysicsEngine : MonoBehaviour
                     //      Debug.DrawRay(object1.transform.position, impulse3D, Color.cyan, 0.2f, false);
                     //  
                     //      // Apply change in velocity based on impulse, in opposite directions for each obj
-                    //      object1.velocity += -impulse3D / object1.mass;
+                    //      object1.velocity -= impulse3D / object1.mass;
                     //      object2.velocity += impulse3D / object2.mass;
-                    //  
                     //  }
                 }
             }
@@ -224,10 +222,21 @@ public class PhysicsEngine : MonoBehaviour
         }
 
         Vector3 mtv = collisionNormal2to1 * overlap;
-        ob1.transform.position += mtv * 0.5f;
-        ob2.transform.position -= mtv * 0.5f;
+        if (!ob1.isStatic && !ob2.isStatic)
+        {
+            ob1.transform.position += mtv * 0.5f;
+            ob2.transform.position -= mtv * 0.5f;
+        }
+        else if (ob1.isStatic)
+        {
+            ob2.transform.position -= mtv;
+        }
+        else if (ob2.isStatic)
+        {
+            ob1.transform.position += mtv;
+        }
 
-        return new CollisionInfo(true, collisionNormal2to1);
+        return new CollisionInfo(true, collisionNormal2to1); // idk why but, yup
     }
 
     public static bool SphereSphereOverlap(Sphere ob1, Sphere ob2)
@@ -248,10 +257,10 @@ public class PhysicsEngine : MonoBehaviour
         }
 
         //sphere.FNormal = ((-Vector3.Dot(plane.GetNormal(), sphere.FGravity) * plane.GetNormal()));// + sphere.FNormal)/2;
-        //sphere.FFriction = -(sphere.FGravity + sphere.FNormal) * sphere.friction;
 
         Vector3 mtv = plane.GetNormal() * overlap;
-        sphere.transform.position += mtv;
+        if (!sphere.isStatic)
+            sphere.transform.position += mtv;
         return new CollisionInfo(true, plane.GetNormal());
     }
 
@@ -269,9 +278,9 @@ public class PhysicsEngine : MonoBehaviour
 
     public void DrawForces(PhysicsObject physObject)
     {
-        Debug.DrawRay(physObject.transform.position, physObject.velocity, Color.red);
-        Debug.DrawRay(physObject.transform.position, physObject.FNormal, Color.green);
-        Debug.DrawRay(physObject.transform.position, physObject.FFriction, Color.white/*new Color(1, 0.4f, 0)*/, 0.01f, false);
-        Debug.DrawRay(physObject.transform.position, physObject.FGravity, new Color(1, 0, 1));
+        Debug.DrawRay(physObject.transform.position, physObject.velocity, Color.yellow, 0.01f, false);
+        Debug.DrawRay(physObject.transform.position, physObject.FNormal, Color.green, 0.01f, false);
+        Debug.DrawRay(physObject.transform.position, physObject.FFriction, new Color(1, 0.4f, 0), 0.01f, false);
+        Debug.DrawRay(physObject.transform.position, physObject.FGravity, new Color(1, 0, 1), 0.01f, false);
     }
 }
