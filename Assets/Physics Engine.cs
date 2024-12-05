@@ -76,9 +76,20 @@ public class PhysicsEngine : MonoBehaviour
                 Vector3 accelerationThisFrame = obj.FNet / obj.mass;
 
                 obj.velocity += accelerationThisFrame * dt;
+               
+                Vector3 momentum = obj.velocity * obj.mass;
+
+                if (momentum.sqrMagnitude < 0.001f)
+                {
+                    obj.velocity = Vector3.zero;
+                }
 
                 Vector3 newPos = obj.transform.position + obj.velocity * dt;
                 obj.transform.position = newPos;
+            }
+            else 
+            { 
+                obj.velocity = Vector3.zero; 
             }
             obj.FFriction = obj.FNet;
             obj.FNet = Vector3.zero;
@@ -110,8 +121,8 @@ public class PhysicsEngine : MonoBehaviour
                     collisionInfo = SpherePlaneCollision(object2 as Sphere, object1 as MyPlane);
                 }
 
-                //object1.FNormal = Vector3.zero;
-                //object2.FNormal = Vector3.zero;
+                object1.FNormal = Vector3.zero;
+                object2.FNormal = Vector3.zero;
 
                 if (collisionInfo.isColliding)
                 {
@@ -124,32 +135,67 @@ public class PhysicsEngine : MonoBehaviour
                     float gravityDotNormal = Vector3.Dot(object2.FGravity, collisionInfo.normal);
                     Vector3 gravityProjectedNormal = collisionInfo.normal * gravityDotNormal;
 
-                    // Add the normal force that opposes gravity
-                    object1.FNormal = gravityProjectedNormal;
-                    object2.FNormal = -gravityProjectedNormal;
-
-                    object1.FNet += object1.FNormal;
-                    object2.FNet += object2.FNormal;
 
                     // Calculate relative velocity to determine if we should apply kinetic friction or not
                     Vector3 vel1RelativeTo2 = object1.velocity - object2.velocity;
                     // Project relative velocity onto the surface
                     float velDotNormal = Vector3.Dot(vel1RelativeTo2, collisionInfo.normal);
                     Vector3 velProjectedNormal = collisionInfo.normal * velDotNormal; // part of velocity only aligned with normal axis
-                    // Subtract the normally aligned velocity from the velocity, to get a 2D vector of the plane
-                    Vector3 vel1RelativeTo2ProjectedOntoPlane = vel1RelativeTo2 - velProjectedNormal; // in-plane relative motion between 1 and 2
 
-                    // Magnitude of friction is coefiicient of friction times normal force magnitude
-                    if (vel1RelativeTo2ProjectedOntoPlane.sqrMagnitude > 0.00001f)
+                    // Add the normal force that opposes gravity
+                    if (gravityDotNormal < 0) // if normal and gravity in the same direction
                     {
-                        float coefficientOfFriction = Mathf.Clamp01(object1.friction * object2.friction);
-                        float frictionMagnitude = object1.FNormal.magnitude * coefficientOfFriction;
-                        object1.FFriction = -vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
-                        object2.FFriction = -vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
+                        object1.FNormal = gravityProjectedNormal;
+                        object2.FNormal = -gravityProjectedNormal;
 
-                        object1.FNet += object1.FFriction;
-                        object2.FNet += object2.FFriction;
+                        object1.FNet += object1.FNormal;
+                        object2.FNet += object2.FNormal;
+
+                        // Subtract the normally aligned velocity from the velocity, to get a 2D vector of the plane
+                        Vector3 vel1RelativeTo2ProjectedOntoPlane = vel1RelativeTo2 - velProjectedNormal; // in-plane relative motion between 1 and 2
+
+                        // Magnitude of friction is coefiicient of friction times normal force magnitude
+                        if (vel1RelativeTo2ProjectedOntoPlane.sqrMagnitude > 0.00001f)
+                        {
+                            float coefficientOfFriction = Mathf.Clamp01(object1.friction * object2.friction);
+                            float frictionMagnitude = object1.FNormal.magnitude * coefficientOfFriction;
+                            object1.FFriction = -vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
+                            object2.FFriction = vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
+
+                            object1.FNet += object1.FFriction;
+                            object2.FNet += object2.FFriction;
+                        }
                     }
+
+
+                    //  //  Lab 10 -- Bounciness/applying impulse from collision
+                    //  if (velDotNormal < 0) // only if they're moving towards eachother to some degree
+                    //  {
+                    //      // Apply bounce
+                    //      // Determine coefficient of restitution
+                    //      float restitution;
+                    //      if (velDotNormal > -0.5f) // Moving towards eachother, but not much
+                    //      {
+                    //          restitution = 0;
+                    //      }
+                    //      else
+                    //      {
+                    //          restitution = Mathf.Clamp01(object1.bounciness * object2.bounciness);
+                    //      }
+                    //      float deltaV = (1.0f + restitution) * velDotNormal;
+                    //      // Notes say: Impulse = (1 + restitution) * Dot(v1Rel2, N) * m1 * m2 / (m1 + m2)
+                    //      float impulse1D = deltaV * object1.mass * object2.mass / (object1.mass + object2.mass);
+                    //      // Impulse is in the direction of the collisionNormal
+                    //      Vector3 impulse3D = collisionInfo.normal * impulse1D;
+                    //  
+                    //  
+                    //      Debug.DrawRay(object1.transform.position, impulse3D, Color.cyan, 0.2f, false);
+                    //  
+                    //      // Apply change in velocity based on impulse, in opposite directions for each obj
+                    //      object1.velocity += -impulse3D / object1.mass;
+                    //      object2.velocity += impulse3D / object2.mass;
+                    //  
+                    //  }
                 }
             }
         }
@@ -225,7 +271,7 @@ public class PhysicsEngine : MonoBehaviour
     {
         Debug.DrawRay(physObject.transform.position, physObject.velocity, Color.red);
         Debug.DrawRay(physObject.transform.position, physObject.FNormal, Color.green);
-        Debug.DrawRay(physObject.transform.position, physObject.FFriction, new Color(1, 0.4f, 0));
+        Debug.DrawRay(physObject.transform.position, physObject.FFriction, Color.white/*new Color(1, 0.4f, 0)*/, 0.01f, false);
         Debug.DrawRay(physObject.transform.position, physObject.FGravity, new Color(1, 0, 1));
     }
 }
