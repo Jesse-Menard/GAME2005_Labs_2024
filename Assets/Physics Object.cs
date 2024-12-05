@@ -5,11 +5,13 @@ using UnityEngine;
 
 public class PhysicsObject : MonoBehaviour
 {
-    public bool enableGravity = true;
-    [Range(0f, 2f)]
-    public float drag = 0.1f;
+    public bool isStatic = false;
+    public float gravityScale = 1.0f;
+    //  [Range(0f, 2f)]
+    //  public float drag = 0.1f;
     [Range(0f, 1f)]
     public float friction = 0.02f;
+    [Min(0.00001f)]
     public float mass = 1.0f;
     public Vector3 velocity = Vector3.zero;
 
