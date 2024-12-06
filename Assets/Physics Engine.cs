@@ -44,6 +44,7 @@ public class PhysicsEngine : MonoBehaviour
         foreach (PhysicsObject obj in physicsObjects)
         {
             obj.GetComponent<Renderer>().material.color = Color.white;
+            obj.FNet = Vector3.zero;
         }
 
         CollisionUpdate();
@@ -60,11 +61,10 @@ public class PhysicsEngine : MonoBehaviour
     {
         foreach (PhysicsObject obj in physicsObjects)
         {
-            obj.FGravity = obj.mass * gravityAcceleration * obj.gravityScale;
-            obj.FNet += obj.FGravity;
-
             if (!obj.isStatic)
             {
+                obj.FGravity = obj.mass * gravityAcceleration * obj.gravityScale;
+                obj.FNet += obj.FGravity;
                 // Update Velocity on Accelleration
 
                 //  // Drag with forces
@@ -91,8 +91,7 @@ public class PhysicsEngine : MonoBehaviour
             { 
                 obj.velocity = Vector3.zero; 
             }
-            //obj.FFriction = obj.FNet;
-            obj.FNet = Vector3.zero;
+
             time += dt;
         }
     }
@@ -132,7 +131,7 @@ public class PhysicsEngine : MonoBehaviour
                     object2.GetComponent<Renderer>().material.color = Color.red;
 
                     // Calculate the perpendicular conponent of gravity by vector projection of gravity onto the normal
-                    float gravityDotNormal = Vector3.Dot(object1.FGravity, collisionInfo.normal);
+                    float gravityDotNormal = Vector3.Dot(object2.FGravity != Vector3.zero ? object2.FGravity : object1.FGravity, collisionInfo.normal);
                     Vector3 gravityProjectedNormal = collisionInfo.normal * gravityDotNormal;
 
 
@@ -145,8 +144,16 @@ public class PhysicsEngine : MonoBehaviour
                     // Add the normal force that opposes gravity
                     if (gravityDotNormal < 0) // if normal and gravity in the same direction
                     {
-                        object1.FNormal = -gravityProjectedNormal;
-                        object2.FNormal = gravityProjectedNormal;
+                        if (object2.FGravity != Vector3.zero)
+                        {
+                            object1.FNormal = gravityProjectedNormal;
+                            object2.FNormal = -gravityProjectedNormal;
+                        }
+                        else
+                        {
+                            object1.FNormal = -gravityProjectedNormal;
+                            object2.FNormal = gravityProjectedNormal;
+                        }
 
                         object1.FNet += object1.FNormal;
                         object2.FNet += object2.FNormal;
@@ -161,7 +168,7 @@ public class PhysicsEngine : MonoBehaviour
                             float frictionMagnitude = object1.FNormal.magnitude * coefficientOfFriction;
                             object1.FFriction = -vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
                             object2.FFriction = vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
-
+                        
                             object1.FNet += object1.FFriction;
                             object2.FNet += object2.FFriction;
                         }
