@@ -22,9 +22,17 @@ public class PhysicsObject : MonoBehaviour
     public Vector3 FFriction = Vector3.zero;
     public Vector3 FNet;
 
+    [HideInInspector]
+    public Vector3 initialVelocity = Vector3.zero;
+    [HideInInspector]
+    public Vector3 initialPosition = Vector3.zero;
+
     // Start is called before the first frame update
     void Start()
     {
+        initialPosition = transform.position;
+        initialVelocity = velocity;
+
         PhysicsEngine.Instance.physicsObjects.Add(this);
     }
 }
