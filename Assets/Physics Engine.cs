@@ -132,8 +132,10 @@ public class PhysicsEngine : MonoBehaviour
                 {
                     // Colliding
                     // Change Color to red
-                    object1.GetComponent<Renderer>().material.color = Color.red;
-                    object2.GetComponent<Renderer>().material.color = Color.red;
+                    if (object1.GetType() == typeof(Sphere))
+                        object1.GetComponent<Renderer>().material.color = Color.red;
+                    if (object2.GetType() == typeof(Sphere))
+                        object2.GetComponent<Renderer>().material.color = Color.red;
                     
                     // Calculate the perpendicular conponent of gravity by vector projection of gravity onto the normal
                     float gravityDotNormal = Vector3.Dot(object1.FGravity != Vector3.zero ? object1.FGravity : object2.FGravity, collisionInfo.normal);
@@ -238,10 +240,10 @@ public class PhysicsEngine : MonoBehaviour
         {
             ob1.transform.position += mtv;
         }
-        else
+        else // does this even do anything anymore?
         {
-            ob1.transform.position += mtv * 1.05f;
-            ob2.transform.position -= mtv * 1.05f;
+            ob1.transform.position += mtv * 0.5f;
+            ob2.transform.position -= mtv * 0.5f;
         }
 
         return new CollisionInfo(true, collisionNormal2to1);
@@ -306,10 +308,10 @@ public class PhysicsEngine : MonoBehaviour
 
     public void DrawForces(PhysicsObject physObject)
     {
-        Debug.DrawRay(physObject.transform.position, physObject.velocity, Color.red, 0.01f, false);
-        //Debug.DrawRay(physObject.transform.position, physObject.FNormal, Color.green, 0.01f, false);
-        Debug.DrawRay(physObject.transform.position, physObject.FFriction, new Color(1, 0.4f, 0), 0.01f, false);
-        Debug.DrawRay(physObject.transform.position, physObject.FGravity, new Color(1, 0, 1), 0.01f, false);
+        Debug.DrawRay(physObject.transform.position, physObject.velocity, Color.red, 0.01f);
+        Debug.DrawRay(physObject.transform.position, physObject.FNormal, Color.green, 0.01f);
+        Debug.DrawRay(physObject.transform.position, physObject.FFriction, new Color(1, 0.4f, 0), 0.01f);
+        Debug.DrawRay(physObject.transform.position, physObject.FGravity, new Color(1, 0, 1), 0.01f);
     }
 
     public void RestartSimulation()
