@@ -8,6 +8,14 @@ using UnityEngine;
 
 public class PhysicsEngine : MonoBehaviour
 {
+    // restitutionTable[Mat1, Mat2]
+    float[,] restitutionTable =
+        {
+            {0.9f, 0.7f, 0.2f },
+            {0.7f, 0.5f, 0.11f },
+            {0.2f, 0.11f, 0.05f }
+        };
+
     public struct CollisionInfo
     {
         public bool isColliding;
@@ -37,6 +45,15 @@ public class PhysicsEngine : MonoBehaviour
     float time = 0;
     float dt = 0.01667f;
     public Vector3 gravityAcceleration = new Vector3(0.0f, -10.0f, 0.0f);
+    public Material[] materials = null;
+
+    private void OnValidate()
+    {
+        foreach (PhysicsObject obj in physicsObjects)
+        {
+            UpdateMaterial(obj);
+        }
+    }
 
     // Update is called once per frame
     void FixedUpdate()
@@ -52,13 +69,16 @@ public class PhysicsEngine : MonoBehaviour
 
         foreach (PhysicsObject obj in physicsObjects)
         {
-            if(obj.velEqRot)
+            UpdateMaterial(obj);
+
+            if (obj.velEqRot)
             {
                 obj.transform.rotation = Quaternion.LookRotation(obj.velocity, Vector3.up);
             }
             DrawForces(obj);
         }
     }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.R))
@@ -181,15 +201,17 @@ public class PhysicsEngine : MonoBehaviour
                     {
                         // Apply bounce
                         // Determine coefficient of restitution
-                        float restitution;
+                        float restitution = restitutionTable[(int)object1.material, (int)object2.material];
+
                         if (velDotNormal > -0.5f) // Moving towards eachother, but not much
                         {
                             restitution = 0;
                         }
-                        else
-                        {
-                            restitution = Mathf.Clamp01(object1.bounciness * object2.bounciness);
-                        }
+                        //  else
+                        //  {
+                        //      restitution = Mathf.Clamp01(object1.bounciness * object2.bounciness);
+                        //  }
+
                         float deltaV = (1.0f + restitution) * velDotNormal;
                         // Notes say: Impulse = (1 + restitution) * Dot(v1Rel2, N) * m1 * m2 / (m1 + m2)
                         float impulse1D = deltaV * object1.mass * object2.mass / (object1.mass + object2.mass);
@@ -328,6 +350,14 @@ public class PhysicsEngine : MonoBehaviour
         {
             obj.velocity = obj.initialVelocity; 
             obj.transform.position = obj.initialPosition; 
+        }
+    }
+
+    public void UpdateMaterial(PhysicsObject obj)
+    {
+        if (obj.GetComponent<Renderer>().material != materials[(int)obj.material])
+        {
+            obj.GetComponent<Renderer>().material = materials[(int)obj.material];
         }
     }
 }

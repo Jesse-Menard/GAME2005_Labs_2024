@@ -2,6 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+public enum surfaceMaterial
+{
+    STEEL = 0,
+    WOOD = 1,
+    CLOTH = 2
+}
 
 public class PhysicsObject : MonoBehaviour
 {
@@ -12,8 +18,9 @@ public class PhysicsObject : MonoBehaviour
     //  public float drag = 0.1f;
     [Range(0f, 1f)]
     public float friction = 0.02f;
-    [Range(0f, 1f)]
-    public float bounciness = 0.5f;
+    //  [Range(0f, 1f)]
+    //  public float bounciness = 0.5f;
+    public surfaceMaterial material = surfaceMaterial.STEEL;
     [Range(0.0001f, 10000f)]
     public float mass = 1.0f;
     public Vector3 velocity = Vector3.zero;
