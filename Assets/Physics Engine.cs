@@ -47,13 +47,6 @@ public class PhysicsEngine : MonoBehaviour
     public Vector3 gravityAcceleration = new Vector3(0.0f, -10.0f, 0.0f);
     public Material[] materials = null;
 
-    private void OnValidate()
-    {
-        foreach (PhysicsObject obj in physicsObjects)
-        {
-            UpdateMaterial(obj);
-        }
-    }
 
     // Update is called once per frame
     void FixedUpdate()
@@ -61,7 +54,6 @@ public class PhysicsEngine : MonoBehaviour
         foreach (PhysicsObject obj in physicsObjects)
         {
             obj.GetComponent<Renderer>().material.color = Color.white;
-
         }
 
         KinematicsUpdate();
@@ -69,7 +61,7 @@ public class PhysicsEngine : MonoBehaviour
 
         foreach (PhysicsObject obj in physicsObjects)
         {
-            UpdateMaterial(obj);
+            //UpdateMaterial(obj);
 
             if (obj.velEqRot)
             {
@@ -150,14 +142,18 @@ public class PhysicsEngine : MonoBehaviour
                 {
                     collisionInfo = SpherePlaneCollision((Sphere)object2, (MyPlane)object1);
                 }
+                else if (object1.GetType() == typeof(Boxx) && object2.GetType() == typeof(Boxx))
+                {
+                    collisionInfo = AABBCollision((Boxx)object2, (Boxx)object1);
+                }
 
                 if (collisionInfo.isColliding)
                 {
                     // Colliding
                     // Change Color to red
-                    if (object1.GetType() == typeof(Sphere))
+                    if (object1.GetType() == typeof(Sphere) || object1.GetType() == typeof(Boxx))
                         object1.GetComponent<Renderer>().material.color = Color.red;
-                    if (object2.GetType() == typeof(Sphere))
+                    if (object2.GetType() == typeof(Sphere) || object1.GetType() == typeof(Boxx))
                         object2.GetComponent<Renderer>().material.color = Color.red;
                     
                     // Calculate the perpendicular conponent of gravity by vector projection of gravity onto the normal
@@ -324,17 +320,24 @@ public class PhysicsEngine : MonoBehaviour
         return new CollisionInfo(true, plane.GetNormal());
     }
 
-    public static bool SpherePlaneOverlap(Sphere sphere, MyPlane plane)
+    public static CollisionInfo AABBCollision(Boxx box1, Boxx box2)
     {
-        Vector3 planeToSphere = sphere.transform.position - plane.transform.position;
-        float positionAlongNormal = Vector3.Dot(planeToSphere, plane.GetNormal());
-        float distanceToPlane = Mathf.Abs(positionAlongNormal);
-        if(plane.isHalspace)
+        // ---- Box 1 ----- Width
+        if (box1.transform.position.x - box1.width <= box2.transform.position.x + box2.width &&
+            box1.transform.position.x + box1.width >= box2.transform.position.x - box2.width &&
+            // Height
+            box1.transform.position.y - box1.height < box2.transform.position.y + box2.height &&
+            box1.transform.position.y + box1.height >= box2.transform.position.y - box2.height &&
+            // Length
+            box1.transform.position.z - box1.length < box2.transform.position.z + box2.length &&
+            box1.transform.position.z + box1.length >= box2.transform.position.z - box2.length)
         {
-            return positionAlongNormal < sphere.radius;
+            return new CollisionInfo(true, Vector3.zero);
         }
-        return distanceToPlane < sphere.radius;
+
+        return new CollisionInfo(false, Vector3.zero);
     }
+
 
     public void DrawForces(PhysicsObject physObject)
     {

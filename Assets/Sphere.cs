@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Sphere : PhysicsObject
 {
-    [Min(0)]
+    [Min(0.001f)]
     public float radius = 1;
 
     private void OnValidate() // Editor only
