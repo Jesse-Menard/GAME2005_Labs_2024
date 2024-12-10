@@ -146,6 +146,14 @@ public class PhysicsEngine : MonoBehaviour
                 {
                     collisionInfo = AABBCollision((Boxx)object2, (Boxx)object1);
                 }
+                else if (object1.GetType() == typeof(Sphere) && object2.GetType() == typeof(Boxx))
+                {
+                    collisionInfo = SphereAABBCollision((Sphere)object1, (Boxx)object2);
+                }
+                else if (object1.GetType() == typeof(Boxx) && object2.GetType() == typeof(Sphere))
+                {
+                    collisionInfo = SphereAABBCollision((Sphere)object2, (Boxx)object1);
+                }
 
                 if (collisionInfo.isColliding)
                 {
@@ -153,7 +161,7 @@ public class PhysicsEngine : MonoBehaviour
                     // Change Color to red
                     if (object1.GetType() == typeof(Sphere) || object1.GetType() == typeof(Boxx))
                         object1.GetComponent<Renderer>().material.color = Color.red;
-                    if (object2.GetType() == typeof(Sphere) || object1.GetType() == typeof(Boxx))
+                    if (object2.GetType() == typeof(Sphere) || object2.GetType() == typeof(Boxx))
                         object2.GetComponent<Renderer>().material.color = Color.red;
                     
                     // Calculate the perpendicular conponent of gravity by vector projection of gravity onto the normal
@@ -299,26 +307,6 @@ public class PhysicsEngine : MonoBehaviour
             sphere.transform.position += mtv;
         return new CollisionInfo(true, plane.GetNormal());
     }
-    
-
-    public static CollisionInfo PlaneSphereCollision(MyPlane plane, Sphere sphere)
-    {
-        Vector3 Displacement = sphere.transform.position - plane.transform.position;
-        float positionAlongNormal = (plane.isHalspace ? Vector3.Dot(Displacement, plane.GetNormal()) : Mathf.Abs(Vector3.Dot(Displacement, plane.GetNormal())));
-        float overlap = sphere.radius - positionAlongNormal;
-
-        if (overlap < 0.0f)
-        {
-            return new CollisionInfo(false, Vector3.zero);
-        }
-
-        //sphere.FNormal = ((-Vector3.Dot(plane.GetNormal(), sphere.FGravity) * plane.GetNormal()));// + sphere.FNormal)/2;
-
-        Vector3 mtv = plane.GetNormal() * overlap;
-        if (!sphere.isStatic)
-            sphere.transform.position += mtv;
-        return new CollisionInfo(true, plane.GetNormal());
-    }
 
     public static CollisionInfo AABBCollision(Boxx box1, Boxx box2)
     {
@@ -338,6 +326,25 @@ public class PhysicsEngine : MonoBehaviour
         return new CollisionInfo(false, Vector3.zero);
     }
 
+    public static CollisionInfo SphereAABBCollision(Sphere sphere, Boxx box)
+    {
+        Vector3 clampedBoxPosition = new Vector3
+        (
+            Mathf.Clamp(sphere.transform.position.x, box.transform.position.x - box.width, box.transform.position.x + box.width),
+            Mathf.Clamp(sphere.transform.position.y, box.transform.position.y - box.height, box.transform.position.y + box.height),
+            Mathf.Clamp(sphere.transform.position.z, box.transform.position.z - box.length, box.transform.position.z + box.length)
+        );
+
+        Vector3 displacementStoB = clampedBoxPosition - sphere.transform.position;
+        float distance = displacementStoB.magnitude;
+
+        if(distance <= sphere.radius)
+        {
+            return new CollisionInfo(true, Vector3.zero);
+        }
+
+       return new CollisionInfo(false, Vector3.zero);
+    }
 
     public void DrawForces(PhysicsObject physObject)
     {
