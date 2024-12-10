@@ -5,6 +5,7 @@ using System.Xml.Linq;
 using Unity.VisualScripting;
 using UnityEditor.PackageManager;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class PhysicsEngine : MonoBehaviour
 {
@@ -313,14 +314,57 @@ public class PhysicsEngine : MonoBehaviour
         // ---- Box 1 ----- Width
         if (box1.transform.position.x - box1.width <= box2.transform.position.x + box2.width &&
             box1.transform.position.x + box1.width >= box2.transform.position.x - box2.width &&
-            // Height
+        // Height
             box1.transform.position.y - box1.height < box2.transform.position.y + box2.height &&
             box1.transform.position.y + box1.height >= box2.transform.position.y - box2.height &&
             // Length
             box1.transform.position.z - box1.length < box2.transform.position.z + box2.length &&
             box1.transform.position.z + box1.length >= box2.transform.position.z - box2.length)
         {
-            return new CollisionInfo(true, Vector3.zero);
+            Vector3 displacement2to1 = box1.transform.position - box2.transform.position;
+            float distance = displacement2to1.magnitude;
+
+            float overlapX = Mathf.Abs(displacement2to1.x) - box1.width - box2.width;
+            float overlapY = Mathf.Abs(displacement2to1.y) - box1.height - box2.height;
+            float overlapZ = Mathf.Abs(displacement2to1.z) - box1.length - box2.length;
+
+            Vector3 mtv = Vector3.zero;
+
+            if (overlapX < 0 && overlapX >= overlapY && overlapX >= overlapZ)
+            {
+                mtv.x = displacement2to1.x > 0 ? -overlapX : overlapX;
+            }
+            if (overlapY < 0 && overlapY > overlapX && overlapY > overlapZ)
+            {
+                mtv.y = displacement2to1.y > 0 ? -overlapY : overlapY;
+            }
+            if (overlapZ < 0 && overlapZ > overlapX && overlapZ > overlapY)
+            {
+                mtv.z = displacement2to1.z > 0 ? -overlapZ : overlapZ;
+            }
+
+
+            if (box1.isStatic && box2.isStatic)
+            {
+                return new CollisionInfo(true, mtv.normalized);
+            }
+            else if (box1.isStatic && !box2.isStatic)
+            {
+                box2.transform.position -= mtv;
+            }
+            else if (box2.isStatic && !box1.isStatic)
+            {
+                box1.transform.position += mtv;
+            }
+            else
+            {
+                box1.transform.position += mtv * 0.5f;
+                box2.transform.position -= mtv * 0.5f;
+            }
+
+
+
+            return new CollisionInfo(true, mtv.normalized);
         }
 
         return new CollisionInfo(false, Vector3.zero);
@@ -335,15 +379,46 @@ public class PhysicsEngine : MonoBehaviour
             Mathf.Clamp(sphere.transform.position.z, box.transform.position.z - box.length, box.transform.position.z + box.length)
         );
 
-        Vector3 displacementStoB = clampedBoxPosition - sphere.transform.position;
+        Vector3 displacementStoB = sphere.transform.position - clampedBoxPosition;
         float distance = displacementStoB.magnitude;
+        float overlap = sphere.radius - distance;
 
-        if(distance <= sphere.radius)
+        if (overlap < 0.0f)
         {
-            return new CollisionInfo(true, Vector3.zero);
+            return new CollisionInfo(false, Vector3.zero);
         }
 
-       return new CollisionInfo(false, Vector3.zero);
+        Vector3 collisionNormal2to1;
+
+        if (distance <= 0.00001f)
+        {
+            collisionNormal2to1 = Vector3.up;
+        }
+        else
+        {
+            collisionNormal2to1 = displacementStoB / distance;
+        }
+
+        Vector3 mtv = collisionNormal2to1 * overlap;
+        if (sphere.isStatic && box.isStatic)
+        {
+            return new CollisionInfo(true, collisionNormal2to1);
+        }
+        else if (sphere.isStatic && !box.isStatic)
+        {
+            box.transform.position -= mtv;
+        }
+        else if (box.isStatic && !sphere.isStatic)
+        {
+            sphere.transform.position += mtv;
+        }
+        else
+        {
+            sphere.transform.position += mtv * 0.5f;
+            box.transform.position -= mtv * 0.5f;
+        }
+
+        return new CollisionInfo(true, collisionNormal2to1);
     }
 
     public void DrawForces(PhysicsObject physObject)
