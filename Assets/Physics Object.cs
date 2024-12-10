@@ -13,7 +13,7 @@ public class PhysicsObject : MonoBehaviour
     public float friction = 0.02f;
     [Range(0f, 1f)]
     public float bounciness = 0.5f;
-    [Min(0.00001f)]
+    [Range(0.0001f, 10000f)]
     public float mass = 1.0f;
     public Vector3 velocity = Vector3.zero;
 
