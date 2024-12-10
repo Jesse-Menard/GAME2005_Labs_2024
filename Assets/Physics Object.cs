@@ -6,6 +6,7 @@ using UnityEngine;
 public class PhysicsObject : MonoBehaviour
 {
     public bool isStatic = false;
+    public bool velEqRot = false;
     public float gravityScale = 1.0f;
     //  [Range(0f, 2f)]
     //  public float drag = 0.1f;

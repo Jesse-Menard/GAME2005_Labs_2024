@@ -44,7 +44,7 @@ public class PhysicsEngine : MonoBehaviour
         foreach (PhysicsObject obj in physicsObjects)
         {
             obj.GetComponent<Renderer>().material.color = Color.white;
-            //obj.FNet = Vector3.zero;
+
         }
 
         KinematicsUpdate();
@@ -52,6 +52,10 @@ public class PhysicsEngine : MonoBehaviour
 
         foreach (PhysicsObject obj in physicsObjects)
         {
+            if(obj.velEqRot)
+            {
+                obj.transform.rotation = Quaternion.LookRotation(obj.velocity, Vector3.up);
+            }
             DrawForces(obj);
         }
     }
@@ -312,10 +316,10 @@ public class PhysicsEngine : MonoBehaviour
 
     public void DrawForces(PhysicsObject physObject)
     {
-        Debug.DrawRay(physObject.transform.position, physObject.velocity, Color.red, 0.01f);
-        Debug.DrawRay(physObject.transform.position, physObject.FNormal, Color.green, 0.5f);
-        Debug.DrawRay(physObject.transform.position, physObject.FFriction, new Color(1, 0.4f, 0), 0.01f);
-        Debug.DrawRay(physObject.transform.position, physObject.FGravity, new Color(1, 0, 1), 0.01f);
+        Debug.DrawRay(physObject.transform.position, physObject.velocity, Color.red);
+        Debug.DrawRay(physObject.transform.position, physObject.FNormal, Color.green);
+        Debug.DrawRay(physObject.transform.position, physObject.FFriction, new Color(1, 0.4f, 0));
+        Debug.DrawRay(physObject.transform.position, physObject.FGravity, new Color(1, 0, 1));
     }
 
     public void RestartSimulation()
