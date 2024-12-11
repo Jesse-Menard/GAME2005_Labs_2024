@@ -23,6 +23,8 @@ public class PhysicsObject : MonoBehaviour
     public surfaceMaterial material = surfaceMaterial.STEEL;
     [Range(0.1f, 10000f)]
     public float mass = 1.0f;
+    [Min(0.0f)]
+    public float toughness = 1.0f;
     public Vector3 velocity = Vector3.zero;
 
     public Vector3 FGravity = Vector3.zero;

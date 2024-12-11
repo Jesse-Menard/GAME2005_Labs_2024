@@ -102,7 +102,7 @@ public class PhysicsEngine : MonoBehaviour
           
                 Vector3 momentum = obj.velocity * obj.mass;
                 // sleep
-                if (momentum.sqrMagnitude < 0.05f)
+                if (momentum.sqrMagnitude < 0.005f)
                 {
                     obj.velocity = Vector3.zero;
                 }
