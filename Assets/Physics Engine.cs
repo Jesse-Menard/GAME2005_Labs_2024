@@ -101,7 +101,8 @@ public class PhysicsEngine : MonoBehaviour
                 obj.velocity += accelerationThisFrame * dt;
           
                 Vector3 momentum = obj.velocity * obj.mass;
-                if (momentum.sqrMagnitude < 0.005f)
+                // sleep
+                if (momentum.sqrMagnitude < 0.05f)
                 {
                     obj.velocity = Vector3.zero;
                 }
@@ -145,7 +146,7 @@ public class PhysicsEngine : MonoBehaviour
                 }
                 else if (object1.GetType() == typeof(Boxx) && object2.GetType() == typeof(Boxx))
                 {
-                    collisionInfo = AABBCollision((Boxx)object2, (Boxx)object1);
+                    collisionInfo = AABBCollision((Boxx)object1, (Boxx)object2);
                 }
                 else if (object1.GetType() == typeof(Sphere) && object2.GetType() == typeof(Boxx))
                 {
@@ -157,7 +158,7 @@ public class PhysicsEngine : MonoBehaviour
                 }
 
                 if (collisionInfo.isColliding)
-                {
+                {                   
                     // Colliding
                     // Change Color to red
                     if (object1.GetType() == typeof(Sphere) || object1.GetType() == typeof(Boxx))
@@ -166,7 +167,7 @@ public class PhysicsEngine : MonoBehaviour
                         object2.GetComponent<Renderer>().material.color = Color.red;
                     
                     // Calculate the perpendicular conponent of gravity by vector projection of gravity onto the normal
-                    float gravityDotNormal = Vector3.Dot(object1.FGravity != Vector3.zero ? object1.FGravity : -object2.FGravity, collisionInfo.normal);
+                    float gravityDotNormal = Vector3.Dot(object1.FGravity != Vector3.zero ? object1.FGravity : object2.FGravity, collisionInfo.normal);
                     Vector3 gravityProjectedNormal = collisionInfo.normal * gravityDotNormal;
                     
                     
@@ -179,8 +180,16 @@ public class PhysicsEngine : MonoBehaviour
                     // Add the normal force that opposes gravity
                     if (gravityDotNormal < 0) // if normal and gravity in the same direction
                     {
-                        object1.FNormal = -gravityProjectedNormal;
-                        object2.FNormal = gravityProjectedNormal;
+                        //if (object1.isStatic || object2.isStatic)
+                        //{
+                        //    object1.FNormal = gravityProjectedNormal;
+                        //    object2.FNormal = -gravityProjectedNormal;
+                        //}
+                        //else
+                        //{
+                            object1.FNormal = -gravityProjectedNormal;
+                            object2.FNormal = gravityProjectedNormal;
+                        //}
                                
                         object1.FNet += object1.FNormal;
                         object2.FNet += object2.FNormal;
@@ -199,6 +208,19 @@ public class PhysicsEngine : MonoBehaviour
                             object1.FNet += object1.FFriction;
                             object2.FNet += object2.FFriction;
                         }
+                        //  if (object1.GetType() == typeof(Boxx) && object2.GetType() == typeof(Boxx) && vel1RelativeTo2ProjectedOntoPlane.sqrMagnitude == 0)
+                        //  {
+                        //      float coefficientOfFriction = Mathf.Clamp01(object1.friction * object2.friction);
+                        //      float frictionMagnitude = object1.FNormal.magnitude * coefficientOfFriction;
+                        //  
+                        //      Vector3 velocityDifference2to1 = object1.velocity - object2.velocity;
+                        //  
+                        //      object1.FFriction = -velocityDifference2to1.normalized * frictionMagnitude * 100;
+                        //      object2.FFriction = velocityDifference2to1.normalized * frictionMagnitude * 100;
+                        //  
+                        //      object1.FNet += object1.FFriction;
+                        //      object2.FNet += object2.FFriction;
+                        //  }
                     }
 
                     //  Lab 10 -- Bounciness/applying impulse from collision
@@ -362,7 +384,18 @@ public class PhysicsEngine : MonoBehaviour
                 box2.transform.position -= mtv * 0.5f;
             }
 
-
+            if(mtv.x != 0)
+            {
+                mtv.x = displacement2to1.x > 0 ? -Mathf.Sign(overlapX) : Mathf.Sign(overlapX);
+            }
+            else if(mtv.y != 0)
+            {
+                mtv.y = displacement2to1.y > 0 ? -Mathf.Sign(overlapY) : Mathf.Sign(overlapY);
+            }
+            else if(mtv.z != 0)
+            {
+                mtv.z = displacement2to1.z > 0 ? -Mathf.Sign(overlapZ) : Mathf.Sign(overlapZ);
+            }
 
             return new CollisionInfo(true, mtv.normalized);
         }

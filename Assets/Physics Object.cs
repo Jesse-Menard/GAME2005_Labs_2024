@@ -21,7 +21,7 @@ public class PhysicsObject : MonoBehaviour
     //  [Range(0f, 1f)]
     //  public float bounciness = 0.5f;
     public surfaceMaterial material = surfaceMaterial.STEEL;
-    [Range(0.0001f, 10000f)]
+    [Range(0.1f, 10000f)]
     public float mass = 1.0f;
     public Vector3 velocity = Vector3.zero;
 

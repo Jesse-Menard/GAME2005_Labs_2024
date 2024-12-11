@@ -9,7 +9,7 @@ public class Launch : MonoBehaviour
     public float startHeight;
 
     float deltaT = 1.0f / 60.0f;
-    public GameObject ProjectileObject;
+    public PhysicsObject ProjectileObject;
     private void Start()
     {
 
@@ -20,7 +20,7 @@ public class Launch : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             // Launch
-            GameObject launchObject = Instantiate(ProjectileObject);
+            PhysicsObject launchObject = Instantiate(ProjectileObject);
             PhysicsObject physicsObject = launchObject.GetComponent<PhysicsObject>();
 
             physicsObject.velocity = new(Mathf.Cos(angle / Mathf.Rad2Deg) * speed, Mathf.Sin(angle / Mathf.Rad2Deg) * speed, 0.0f);
@@ -29,6 +29,9 @@ public class Launch : MonoBehaviour
             physicsObject.FNormal = Vector3.zero;
             physicsObject.FGravity = Vector3.zero;
             physicsObject.FFriction = Vector3.zero;
+            physicsObject.material = surfaceMaterial.CLOTH;
+            physicsObject.mass = 2;
+            physicsObject.friction = 1.0f;
         }
     }
 

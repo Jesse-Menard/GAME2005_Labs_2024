@@ -5,11 +5,11 @@ using UnityEngine.UIElements;
 
 public class Boxx : PhysicsObject
 {
-    [Range(0.001f, 20)]
+    [Range(0.001f, 100)]
     public float width = 1;
     [Range(0.001f, 20)]
     public float height = 1;
-    [Range(0.001f, 20)]
+    [Range(0.001f, 100)]
     public float length = 1;
 
     // Start is called before the first frame update
