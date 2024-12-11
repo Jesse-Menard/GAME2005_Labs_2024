@@ -16,7 +16,6 @@ public class Launch : MonoBehaviour
 
     public Vector3 startingMousePos = Vector3.zero;
     public Vector3 deltaMousePos = Vector3.zero;
-    public Vector3 position = Vector3.zero;
 
     PhysicsObject createdObjectReference;
 
@@ -31,24 +30,19 @@ public class Launch : MonoBehaviour
         {
             PhysicsObject launchObject = Instantiate(useSphere ? ProjectileObjectSphere : ProjectileObjectBox);
             createdObjectReference = launchObject.GetComponent<PhysicsObject>();
+            //createdObjectReference.transform.position = transform.position;
             startingMousePos = Input.mousePosition;
         }
 
         if (Input.GetMouseButton(0))
         {
-
             deltaMousePos = startingMousePos - Input.mousePosition;
-            //if (deltaMousePos.magnitude > 20)
-            {
-                deltaMousePos = deltaMousePos.normalized * Mathf.Clamp(deltaMousePos.magnitude/15, 0.0f, 3.0f);
-            }
-            createdObjectReference.transform.position = -deltaMousePos;
+            deltaMousePos = deltaMousePos.normalized * Mathf.Clamp(deltaMousePos.magnitude/15, 0.0f, 3.0f);           
+            createdObjectReference.transform.position = transform.position -deltaMousePos;
         }
 
         if (Input.GetMouseButtonUp(0) && startingMousePos.magnitude != 0)
         {
-
-
             Release();
             startingMousePos = Vector3.zero;
             deltaMousePos = Vector3.zero;
@@ -57,13 +51,13 @@ public class Launch : MonoBehaviour
         {
             useSphere = !useSphere;
         }
-
+        Debug.DrawLine(transform.position-deltaMousePos, transform.position, Color.blue);
     }
 
     private void FixedUpdate()
     {
         // Show lauch angle w/ vel
-        Debug.DrawLine(-deltaMousePos, transform.position, Color.blue);        
+        //Debug.DrawLine(-deltaMousePos, transform.position, Color.blue);        
     }
 
     public void Release()
@@ -72,7 +66,6 @@ public class Launch : MonoBehaviour
         {
             deltaMousePos = Vector3.right;
         }
-        createdObjectReference.toughness = 100;
         createdObjectReference.velocity = (deltaMousePos * MaxForce) / createdObjectReference.mass;
     }
 }

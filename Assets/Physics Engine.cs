@@ -60,7 +60,7 @@ public class PhysicsEngine : MonoBehaviour
 
         KinematicsUpdate();
         CollisionUpdate();
-        Cleanup();
+        //Cleanup();
 
         foreach (PhysicsObject obj in physicsObjects)
         {
@@ -161,11 +161,11 @@ public class PhysicsEngine : MonoBehaviour
                 if (collisionInfo.isColliding)
                 {                   
                     // Colliding
-                    // Change Color to red
-                    if (object1.GetType() == typeof(Sphere) || object1.GetType() == typeof(Boxx))
-                        object1.GetComponent<Renderer>().material.color = Color.red;
-                    if (object2.GetType() == typeof(Sphere) || object2.GetType() == typeof(Boxx))
-                        object2.GetComponent<Renderer>().material.color = Color.red;
+                    //  // Change Color to red
+                    //  if (object1.GetType() == typeof(Sphere) || object1.GetType() == typeof(Boxx))
+                    //      object1.GetComponent<Renderer>().material.color = Color.red;
+                    //  if (object2.GetType() == typeof(Sphere) || object2.GetType() == typeof(Boxx))
+                    //      object2.GetComponent<Renderer>().material.color = Color.red;
                     
                     // Calculate the perpendicular conponent of gravity by vector projection of gravity onto the normal
                     float gravityDotNormal = Vector3.Dot(object1.FGravity != Vector3.zero ? object1.FGravity : object2.FGravity, collisionInfo.normal);
@@ -484,15 +484,21 @@ public class PhysicsEngine : MonoBehaviour
 
     public void Impact(PhysicsObject ob1, PhysicsObject ob2)
     {
-        Vector3 momentumDifference = ob1.momentum - ob2.momentum;
-        if (momentumDifference.magnitude > ob1.toughness)
+        // If toughness 0 or less, ignore the trait
+        if (ob1.toughness > 0 || ob2.toughness > 0 && !ob1.isStatic && !ob2.isStatic)
         {
-            ob1.shouldDestroy = true;
-        }
+            Vector3 momentumDifference = ob1.momentum - ob2.momentum;
 
-        if (momentumDifference.magnitude > ob2.toughness)
-        {
-            ob2.shouldDestroy = true;
+            if (ob1.toughness > 0 && (momentumDifference.magnitude > ob1.toughness))
+            {
+                physicsObjects.Remove(ob1);
+                Destroy(ob1.gameObject);
+            }
+            if (ob2.toughness > 0 && (momentumDifference.magnitude > ob2.toughness))
+            {
+                physicsObjects.Remove(ob2);
+                Destroy(ob2.gameObject);
+            }
         }
     }
 
