@@ -1,15 +1,20 @@
 
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Launch : MonoBehaviour
 {
-    public float angle;
-    public float speed;
-    public float startHeight;
+    public float MaxSpeed;
 
     float deltaT = 1.0f / 60.0f;
     public PhysicsObject ProjectileObject;
+
+    public Vector3 startingMousePos = Vector3.zero;
+    public Vector3 deltaMousePos = Vector3.zero;
+
+    PhysicsObject createdObjectReference;
+
     private void Start()
     {
 
@@ -17,27 +22,51 @@ public class Launch : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetMouseButtonDown(0))            
         {
-            // Launch
             PhysicsObject launchObject = Instantiate(ProjectileObject);
-            PhysicsObject physicsObject = launchObject.GetComponent<PhysicsObject>();
+            createdObjectReference = launchObject.GetComponent<PhysicsObject>();
+            startingMousePos = Input.mousePosition;
+        }
 
-            physicsObject.velocity = new(Mathf.Cos(angle / Mathf.Rad2Deg) * speed, Mathf.Sin(angle / Mathf.Rad2Deg) * speed, 0.0f);
-            physicsObject.transform.position = new(0.0f, startHeight, 0.0f);
-            physicsObject.FNet = Vector3.zero;
-            physicsObject.FNormal = Vector3.zero;
-            physicsObject.FGravity = Vector3.zero;
-            physicsObject.FFriction = Vector3.zero;
-            physicsObject.material = surfaceMaterial.CLOTH;
-            physicsObject.mass = 2;
-            physicsObject.friction = 1.0f;
+        if (Input.GetMouseButton(0))
+        {
+
+            deltaMousePos = startingMousePos - Input.mousePosition;
+            //if (deltaMousePos.magnitude > 20)
+            {
+                deltaMousePos = deltaMousePos.normalized * Mathf.Clamp(deltaMousePos.magnitude/15, 0.0f, 3.0f);
+            }
+
+            createdObjectReference.transform.position = -deltaMousePos;
+        }
+
+        if (Input.GetMouseButtonUp(0) && startingMousePos.magnitude != 0)
+        {
+
+
+            Release();
+            startingMousePos = Vector3.zero;
+            deltaMousePos = Vector3.zero;
         }
     }
 
     private void FixedUpdate()
     {
         // Show lauch angle w/ vel
-        Debug.DrawLine(new Vector3(0.0f, startHeight, 0.0f), new Vector3(Mathf.Cos(angle / Mathf.Rad2Deg) * speed * 0.2f, Mathf.Sin(angle / Mathf.Rad2Deg) * speed * 0.2f + startHeight, 0.0f), Color.blue);        
+        Debug.DrawLine(-deltaMousePos, transform.position, Color.blue);        
+    }
+
+    public void Release()
+    {
+
+
+        if(deltaMousePos.magnitude == 0)
+        {
+            deltaMousePos = Vector3.right;
+        }
+
+        createdObjectReference.velocity = (deltaMousePos / 3 * MaxSpeed);
+        //physicsObject.transform.position = transform.position;
     }
 }
