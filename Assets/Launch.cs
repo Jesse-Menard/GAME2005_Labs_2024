@@ -72,7 +72,7 @@ public class Launch : MonoBehaviour
         {
             deltaMousePos = Vector3.right;
         }
-
+        createdObjectReference.toughness = 100;
         createdObjectReference.velocity = (deltaMousePos * MaxForce) / createdObjectReference.mass;
     }
 }

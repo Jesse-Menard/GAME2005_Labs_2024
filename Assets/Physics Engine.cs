@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 using Unity.VisualScripting;
 using UnityEditor.PackageManager;
@@ -59,10 +60,10 @@ public class PhysicsEngine : MonoBehaviour
 
         KinematicsUpdate();
         CollisionUpdate();
+        Cleanup();
 
         foreach (PhysicsObject obj in physicsObjects)
         {
-            //UpdateMaterial(obj);
 
             if (obj.velEqRot)
             {
@@ -100,9 +101,9 @@ public class PhysicsEngine : MonoBehaviour
 
                 obj.velocity += accelerationThisFrame * dt;
           
-                Vector3 momentum = obj.velocity * obj.mass;
+                obj.momentum = obj.velocity * obj.mass;
                 // sleep
-                if (momentum.sqrMagnitude < 0.005f)
+                if (obj.momentum.sqrMagnitude < 0.005f)
                 {
                     obj.velocity = Vector3.zero;
                 }
@@ -252,6 +253,8 @@ public class PhysicsEngine : MonoBehaviour
                         object1.velocity -= impulse3D / object1.mass;
                         object2.velocity += impulse3D / object2.mass;
                     }
+
+                    Impact(object1, object2);
                 }
             }
         }
@@ -476,6 +479,43 @@ public class PhysicsEngine : MonoBehaviour
         if (obj.GetComponent<Renderer>().material != materials[(int)obj.material])
         {
             obj.GetComponent<Renderer>().material = materials[(int)obj.material];
+        }
+    }
+
+    public void Impact(PhysicsObject ob1, PhysicsObject ob2)
+    {
+        Vector3 momentumDifference = ob1.momentum - ob2.momentum;
+        if (momentumDifference.magnitude > ob1.toughness)
+        {
+            ob1.shouldDestroy = true;
+        }
+
+        if (momentumDifference.magnitude > ob2.toughness)
+        {
+            ob2.shouldDestroy = true;
+        }
+    }
+
+    public void Cleanup()
+    {
+        bool scanned = false;
+        while (!scanned)
+        {
+            foreach(PhysicsObject obj in physicsObjects)
+            {
+                if (obj.shouldDestroy)
+                {
+                    // DIE
+                    physicsObjects.Remove(obj);
+                    Destroy(obj.gameObject);
+                    break;
+                }
+                if (obj == physicsObjects.Last())
+                {
+                    scanned = true;
+                }
+            }
+            
         }
     }
 }

@@ -24,7 +24,9 @@ public class PhysicsObject : MonoBehaviour
     [Range(0.1f, 10000f)]
     public float mass = 1.0f;
     [Min(0.0f)]
-    public float toughness = 1.0f;
+    public float toughness = 100.0f;
+    public Vector3 momentum = Vector3.zero;
+
     public Vector3 velocity = Vector3.zero;
 
     public Vector3 FGravity = Vector3.zero;
@@ -36,7 +38,8 @@ public class PhysicsObject : MonoBehaviour
     public Vector3 initialVelocity = Vector3.zero;
     [HideInInspector]
     public Vector3 initialPosition = Vector3.zero;
-
+    [HideInInspector]
+    public bool shouldDestroy = false;
     // Start is called before the first frame update
     void Start()
     {
