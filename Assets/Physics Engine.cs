@@ -43,6 +43,7 @@ public class PhysicsEngine : MonoBehaviour
         }
     }
 
+    public PhysicsObject lastObj;
     public List<PhysicsObject> physicsObjects = new List<PhysicsObject>();
     float time = 0;
     float dt = 0.01667f;
@@ -58,13 +59,13 @@ public class PhysicsEngine : MonoBehaviour
             obj.GetComponent<Renderer>().material.color = Color.white;
         }
 
+        UpdateBuffer();
         KinematicsUpdate();
         CollisionUpdate();
-        //Cleanup();
 
         foreach (PhysicsObject obj in physicsObjects)
         {
-
+            // Makes obj face movement direction
             if (obj.velEqRot)
             {
                 obj.transform.rotation = Quaternion.LookRotation(obj.velocity, Vector3.up);
@@ -155,7 +156,7 @@ public class PhysicsEngine : MonoBehaviour
                 }
                 else if (object1.GetType() == typeof(Boxx) && object2.GetType() == typeof(Sphere))
                 {
-                    collisionInfo = SphereAABBCollision((Sphere)object2, (Boxx)object1);
+                    collisionInfo = SphereAABBCollision((Boxx)object1, (Sphere)object2);
                 }
 
                 if (collisionInfo.isColliding)
@@ -163,7 +164,8 @@ public class PhysicsEngine : MonoBehaviour
                     // Colliding
                     //  // Change Color to red
                     //  if (object1.GetType() == typeof(Sphere) || object1.GetType() == typeof(Boxx))
-                    //      object1.GetComponent<Renderer>().material.color = Color.red;
+                    //if (object1.shouldDestroy)
+                    //    object1.GetComponent<Renderer>().material.color = Color.red;
                     //  if (object2.GetType() == typeof(Sphere) || object2.GetType() == typeof(Boxx))
                     //      object2.GetComponent<Renderer>().material.color = Color.red;
                     
@@ -183,13 +185,13 @@ public class PhysicsEngine : MonoBehaviour
                     {
                         //if (object1.isStatic || object2.isStatic)
                         //{
-                        //    object1.FNormal = gravityProjectedNormal;
-                        //    object2.FNormal = -gravityProjectedNormal;
+                            object1.FNormal = gravityProjectedNormal;
+                            object2.FNormal = -gravityProjectedNormal;
                         //}
                         //else
                         //{
-                            object1.FNormal = -gravityProjectedNormal;
-                            object2.FNormal = gravityProjectedNormal;
+                        //    object1.FNormal = -gravityProjectedNormal;
+                        //    object2.FNormal = gravityProjectedNormal;
                         //}
                                
                         object1.FNet += object1.FNormal;
@@ -252,9 +254,9 @@ public class PhysicsEngine : MonoBehaviour
                         // Apply change in velocity based on impulse, in opposite directions for each obj
                         object1.velocity -= impulse3D / object1.mass;
                         object2.velocity += impulse3D / object2.mass;
-                    }
 
-                    Impact(object1, object2);
+                        Impact(object1, object2);
+                    }
                 }
             }
         }
@@ -457,6 +459,58 @@ public class PhysicsEngine : MonoBehaviour
         return new CollisionInfo(true, collisionNormal2to1);
     }
 
+    // override for side flip, idk how to do this more effieciently. I gave it genuine thought too, a new method entirely is probably best, but alas
+    public static CollisionInfo SphereAABBCollision(Boxx box, Sphere sphere)
+    {
+        Vector3 clampedBoxPosition = new Vector3
+        (
+            Mathf.Clamp(sphere.transform.position.x, box.transform.position.x - box.width, box.transform.position.x + box.width),
+            Mathf.Clamp(sphere.transform.position.y, box.transform.position.y - box.height, box.transform.position.y + box.height),
+            Mathf.Clamp(sphere.transform.position.z, box.transform.position.z - box.length, box.transform.position.z + box.length)
+        );
+
+        Vector3 displacementBtoS = clampedBoxPosition  - sphere.transform.position;
+        float distance = displacementBtoS.magnitude;
+        float overlap = sphere.radius - distance;
+
+        if (overlap < 0.0f)
+        {
+            return new CollisionInfo(false, Vector3.zero);
+        }
+
+        Vector3 collisionNormalBtoS;
+
+        if (distance <= 0.00001f)
+        {
+            collisionNormalBtoS = Vector3.up;
+        }
+        else
+        {
+            collisionNormalBtoS = displacementBtoS / distance;
+        }
+
+        Vector3 mtv = collisionNormalBtoS * overlap;
+        if (sphere.isStatic && box.isStatic)
+        {
+            return new CollisionInfo(true, collisionNormalBtoS);
+        }
+        else if (sphere.isStatic && !box.isStatic)
+        {
+            box.transform.position += mtv;
+        }
+        else if (box.isStatic && !sphere.isStatic)
+        {
+            sphere.transform.position -= mtv;
+        }
+        else
+        {
+            sphere.transform.position -= mtv * 0.5f;
+            box.transform.position += mtv * 0.5f;
+        }
+
+        return new CollisionInfo(true, collisionNormalBtoS);
+    }
+
     public void DrawForces(PhysicsObject physObject)
     {
         Debug.DrawRay(physObject.transform.position, physObject.velocity, Color.red);
@@ -491,37 +545,23 @@ public class PhysicsEngine : MonoBehaviour
 
             if (ob1.toughness > 0 && (momentumDifference.magnitude > ob1.toughness))
             {
-                physicsObjects.Remove(ob1);
+                instance.physicsObjects.Remove(ob1);
                 Destroy(ob1.gameObject);
             }
             if (ob2.toughness > 0 && (momentumDifference.magnitude > ob2.toughness))
             {
-                physicsObjects.Remove(ob2);
+                instance.physicsObjects.Remove(ob2);
                 Destroy(ob2.gameObject);
             }
         }
     }
 
-    public void Cleanup()
+    public void UpdateBuffer()
     {
-        bool scanned = false;
-        while (!scanned)
+        if (lastObj != physicsObjects.Last<PhysicsObject>())
         {
-            foreach(PhysicsObject obj in physicsObjects)
-            {
-                if (obj.shouldDestroy)
-                {
-                    // DIE
-                    physicsObjects.Remove(obj);
-                    Destroy(obj.gameObject);
-                    break;
-                }
-                if (obj == physicsObjects.Last())
-                {
-                    scanned = true;
-                }
-            }
-            
+            instance.physicsObjects.Remove(lastObj);
+            instance.physicsObjects.Add(lastObj);
         }
     }
 }
