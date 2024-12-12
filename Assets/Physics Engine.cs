@@ -57,6 +57,7 @@ public class PhysicsEngine : MonoBehaviour
         foreach (PhysicsObject obj in physicsObjects)
         {
             obj.GetComponent<Renderer>().material.color = Color.white;
+            obj.frictionFriends.Clear();
         }
 
         UpdateBuffer();
@@ -104,7 +105,7 @@ public class PhysicsEngine : MonoBehaviour
           
                 obj.momentum = obj.velocity * obj.mass;
                 // sleep
-                if (obj.momentum.sqrMagnitude < 0.005f)
+                if (obj.momentum.sqrMagnitude < 0.01f)
                 {
                     obj.velocity = Vector3.zero;
                 }
@@ -183,47 +184,54 @@ public class PhysicsEngine : MonoBehaviour
                     // Add the normal force that opposes gravity
                     if (gravityDotNormal < 0) // if normal and gravity in the same direction
                     {
-                        //if (object1.isStatic || object2.isStatic)
-                        //{
-                            object1.FNormal = gravityProjectedNormal;
-                            object2.FNormal = -gravityProjectedNormal;
-                        //}
-                        //else
-                        //{
-                        //    object1.FNormal = -gravityProjectedNormal;
-                        //    object2.FNormal = gravityProjectedNormal;
-                        //}
+                        object1.FNormal = gravityProjectedNormal;
+                        object2.FNormal = -gravityProjectedNormal;
                                
                         object1.FNet += object1.FNormal;
                         object2.FNet += object2.FNormal;
                     
                         // Subtract the normally aligned velocity from the velocity, to get a 2D vector of the plane
                         Vector3 vel1RelativeTo2ProjectedOntoPlane = vel1RelativeTo2 - velProjectedNormal; // in-plane relative motion between 1 and 2
-                    
+
                         // Magnitude of friction is coefiicient of friction times normal force magnitude
                         if (vel1RelativeTo2ProjectedOntoPlane.sqrMagnitude > 0.0001f)
                         {
-                            float coefficientOfFriction = Mathf.Clamp01(object1.friction * object2.friction);
-                            float frictionMagnitude = object1.FNormal.magnitude * coefficientOfFriction;
-                            object1.FFriction = -vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
-                            object2.FFriction = vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
-                        
-                            object1.FNet += object1.FFriction;
-                            object2.FNet += object2.FFriction;
+                            //  // tried it as a hail mary, lol
+                            //  float invMassSum = object1.mass + object2.mass;
+                            //  Vector3 frictionImpulseDirection = Vector3.Normalize(vel1RelativeTo2 - (collisionInfo.normal * velDotNormal));
+                            //  float frictionImpulseMagnitude = -Vector3.Dot(vel1RelativeTo2, frictionImpulseDirection) / invMassSum;
+                            //  float mu = Mathf.Sqrt(object1.friction * object2.friction); // <-- Coulomb's Law (how to combine friction coefficients)
+                            //  frictionImpulseMagnitude = Mathf.Clamp(frictionImpulseMagnitude, -gravityProjectedNormal.magnitude * mu, gravityProjectedNormal.magnitude * mu);
+                            //  
+                            //  Vector3 frictionImpulse = frictionImpulseDirection * frictionImpulseMagnitude;
+                            //  object1.FNet += frictionImpulse * object1.mass;
+                            //  object2.FNet -= frictionImpulse * object2.mass;
+                            bool areFriends = false;
+
+                            foreach(PhysicsObject obj in object1.frictionFriends)
+                            {
+                                if (obj == object2)
+                                {
+                                    areFriends = true; 
+                                    break;
+                                }
+                            }
+
+                            if (!areFriends)
+                            { 
+                                float coefficientOfFriction = Mathf.Clamp01(object1.friction * object2.friction);
+                                float frictionMagnitude = object1.FNormal.magnitude * coefficientOfFriction;
+
+                                object1.FFriction = -vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
+                                object2.FFriction = vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
+
+                                object1.FNet += object1.FFriction;
+                                object2.FNet += object2.FFriction;
+
+                                object1.frictionFriends.Add(object2);
+                                object2.frictionFriends.Add(object1);
+                            }
                         }
-                        //  if (object1.GetType() == typeof(Boxx) && object2.GetType() == typeof(Boxx) && vel1RelativeTo2ProjectedOntoPlane.sqrMagnitude == 0)
-                        //  {
-                        //      float coefficientOfFriction = Mathf.Clamp01(object1.friction * object2.friction);
-                        //      float frictionMagnitude = object1.FNormal.magnitude * coefficientOfFriction;
-                        //  
-                        //      Vector3 velocityDifference2to1 = object1.velocity - object2.velocity;
-                        //  
-                        //      object1.FFriction = -velocityDifference2to1.normalized * frictionMagnitude * 100;
-                        //      object2.FFriction = velocityDifference2to1.normalized * frictionMagnitude * 100;
-                        //  
-                        //      object1.FNet += object1.FFriction;
-                        //      object2.FNet += object2.FFriction;
-                        //  }
                     }
 
                     //  Lab 10 -- Bounciness/applying impulse from collision

@@ -38,6 +38,9 @@ public class PhysicsObject : MonoBehaviour
     public Vector3 initialVelocity = Vector3.zero;
     [HideInInspector]
     public Vector3 initialPosition = Vector3.zero;
+    [HideInInspector]
+    public List<PhysicsObject> frictionFriends = new List<PhysicsObject>();
+
     // Start is called before the first frame update
     void Start()
     {
