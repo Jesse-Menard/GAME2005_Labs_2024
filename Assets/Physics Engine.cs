@@ -57,7 +57,6 @@ public class PhysicsEngine : MonoBehaviour
         foreach (PhysicsObject obj in physicsObjects)
         {
             obj.GetComponent<Renderer>().material.color = Color.white;
-            obj.frictionFriends.Clear();
         }
 
         UpdateBuffer();
@@ -206,31 +205,31 @@ public class PhysicsEngine : MonoBehaviour
                             //  Vector3 frictionImpulse = frictionImpulseDirection * frictionImpulseMagnitude;
                             //  object1.FNet += frictionImpulse * object1.mass;
                             //  object2.FNet -= frictionImpulse * object2.mass;
-                            bool areFriends = false;
+                            
+                            //bool areFriends = false;
+                            //  foreach(PhysicsObject obj in object1.frictionFriends)
+                            //  {
+                            //      if (obj == object2)
+                            //      {
+                            //          areFriends = true; 
+                            //          break;
+                            //      }
+                            //  }
 
-                            foreach(PhysicsObject obj in object1.frictionFriends)
-                            {
-                                if (obj == object2)
-                                {
-                                    areFriends = true; 
-                                    break;
-                                }
-                            }
+                            //if (!areFriends)
+                            //{ 
+                            float coefficientOfFriction = Mathf.Clamp01(object1.friction * object2.friction);
+                            float frictionMagnitude = object1.FNormal.magnitude * coefficientOfFriction;
 
-                            if (!areFriends)
-                            { 
-                                float coefficientOfFriction = Mathf.Clamp01(object1.friction * object2.friction);
-                                float frictionMagnitude = object1.FNormal.magnitude * coefficientOfFriction;
+                            object1.FFriction = -vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
+                            object2.FFriction = vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
 
-                                object1.FFriction = -vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
-                                object2.FFriction = vel1RelativeTo2ProjectedOntoPlane.normalized * frictionMagnitude;
+                            object1.FNet += object1.FFriction;
+                            object2.FNet += object2.FFriction;
 
-                                object1.FNet += object1.FFriction;
-                                object2.FNet += object2.FFriction;
-
-                                object1.frictionFriends.Add(object2);
-                                object2.frictionFriends.Add(object1);
-                            }
+                                //object1.frictionFriends.Add(object2);
+                                //object2.frictionFriends.Add(object1);
+                            //}
                         }
                     }
 
