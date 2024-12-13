@@ -68,7 +68,8 @@ public class PhysicsEngine : MonoBehaviour
             // Makes obj face movement direction
             if (obj.velEqRot)
             {
-                obj.transform.rotation = Quaternion.LookRotation(obj.velocity, Vector3.up);
+                Quaternion velDir = Quaternion.LookRotation(-obj.velocity, Vector3.up);
+                obj.transform.rotation = Quaternion.Slerp(obj.transform.rotation, velDir, 0.15f);
             }
             DrawForces(obj);
         }
@@ -255,8 +256,8 @@ public class PhysicsEngine : MonoBehaviour
                         // Impulse is in the direction of the collisionNormal
                         Vector3 impulse3D = collisionInfo.normal * impulse1D;
                                         
-                        Debug.DrawRay(object1.transform.position, impulse3D, Color.cyan, 1.0f, false);
-                        Debug.DrawRay(object2.transform.position, impulse3D, Color.cyan, 1.0f, false);
+                        Debug.DrawRay(object1.transform.position, impulse3D, Color.cyan);
+                        Debug.DrawRay(object2.transform.position, impulse3D, Color.cyan);
                     
                         // Apply change in velocity based on impulse, in opposite directions for each obj
                         object1.velocity -= impulse3D / object1.mass;
